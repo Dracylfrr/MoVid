@@ -10,7 +10,10 @@ namespace MoVid {
   CheckBox Check(string text,bool value){return new CheckBox{Text=text,Checked=value,AutoSize=true,ForeColor=Color.WhiteSmoke,Margin=new Padding(0,2,0,12),MaximumSize=new Size(750,0)};}
   ComboBox Combo(string[] options){var c=new ComboBox{DropDownStyle=ComboBoxStyle.DropDownList,Width=360,BackColor=panelColor,ForeColor=Color.WhiteSmoke,FlatStyle=FlatStyle.Flat,Margin=new Padding(0,0,0,18)};c.Items.AddRange(options);return c;}
   void SettingsView(){
+   EmailCard();
+   var advancedRow=Row();advancedRow.Controls.Add(Btn(advancedVisible?"Hide advanced personal setup":"Advanced personal setup",()=>{advancedVisible=!advancedVisible;Navigate("settings");}));content.Controls.Add(advancedRow);
    var s=store.State.Settings;var box=Stack();box.Controls.Add(LabelText("Movie database connection",16,accent));box.Controls.Add(LabelText(store.ApiKey.Length>0?"Connected · your key is stored securely for this Windows user.":"Connect once to search real people and upcoming releases. There is no MoVid account.",10,muted));
+   box.Visible=advancedVisible;
    box.Controls.Add(LabelText("Application URL · paste this into TMDB’s required application URL field",9,muted));
    var projectUrl=new TextBox{ReadOnly=true,Width=500,Text=Program.ApplicationUrl,BackColor=bg,ForeColor=accent,Margin=new Padding(0,0,0,12)};box.Controls.Add(projectUrl);
    var projectActions=Row();projectActions.Controls.Add(Btn("Copy application URL",()=>{Clipboard.SetText(Program.ApplicationUrl);SetStatus("Application URL copied. Paste it into TMDB’s application form.");}));projectActions.Controls.Add(Btn("Project website ↗",()=>OpenUrl(Program.ApplicationUrl)));box.Controls.Add(projectActions);
@@ -25,6 +28,7 @@ namespace MoVid {
    foreach(var c in new[]{theater,digital,tv,trailers,confirmed})box.Controls.Add(c);
    var row=Row();row.Controls.Add(Btn("Save settings",async()=>await Safe(SaveSettings),true));row.Controls.Add(Btn("Send test alert",async()=>await Safe(async()=>{await SaveSettings();await engine.Notify("test:"+DateTime.UtcNow.Ticks,"MoVid","MoVid is ready. Your release reminders will appear here.",null);SetStatus("Test alert sent. Check Windows notifications and MoVid’s Notifications page.");})));box.Controls.Add(row);content.Controls.Add(box);
    box=Stack();box.Controls.Add(LabelText("Optional phone lock-screen alerts",16,accent));mobile=Check("Also send my alerts to the free ntfy phone app",s.Mobile);box.Controls.Add(mobile);box.Controls.Add(LabelText("1. Install ntfy on your phone and allow notifications.\n2. Add a subscription with server ntfy.sh and the topic below.\n3. Save settings and select Send test alert.",10));
+   box.Visible=advancedVisible;
    topicBox=new TextBox{ReadOnly=true,Width=540,BackColor=bg,ForeColor=accent,Text=store.PhoneTopic,Margin=new Padding(0,0,0,12)};box.Controls.Add(topicBox);row=Row();row.Controls.Add(Btn("Create connection",()=>{if(store.PhoneTopic.Length==0)store.NewTopic();topicBox.Text=store.PhoneTopic;SetStatus("Copy the topic into ntfy on your phone, then enable phone alerts and save.");}));row.Controls.Add(Btn("Copy topic",()=>{if(topicBox.Text.Length>0)Clipboard.SetText(topicBox.Text);}));row.Controls.Add(Btn("Phone setup guide ↗",()=>OpenUrl("https://docs.ntfy.sh/subscribe/phone/")));box.Controls.Add(row);
    row=Row();row.Controls.Add(Btn("Save phone settings",async()=>await Safe(SaveSettings),true));row.Controls.Add(Btn("Disconnect phone",()=>{s.Mobile=false;s.TopicCipher="";mobile.Checked=false;topicBox.Text="";store.Save();SetStatus("Phone delivery disabled. Remove the old subscription in ntfy too.");}));box.Controls.Add(row);
    box.Controls.Add(LabelText("No SMS, iMessage, email, or phone number is used. Alerts appear under ntfy on your phone. Your PC must be on and MoVid running. Normal internet/data-plan limits apply. Anyone who knows this topic can read or publish to it; keep it private. The service sees notification text. Free-service limits and availability apply.",9,muted));content.Controls.Add(box);
@@ -38,6 +42,7 @@ namespace MoVid {
    if(newKey.Length>0){store.ApiKey=newKey;try{await engine.Api.Get("/configuration/countries");}catch{store.ApiKey=oldKey;throw;}}
    var s=store.State.Settings;string newRegion=Convert.ToString(region.SelectedItem).Substring(0,2);if(newRegion!=s.Region){store.State.Releases.Clear();store.State.LastCheck="";}s.Region=newRegion;s.Timing=new[]{"both","before","day","none"}[Math.Max(0,timing.SelectedIndex)];s.Hour=Math.Max(0,hour.SelectedIndex);
    s.Notifications=notifications.Checked;s.Theater=theater.Checked;s.Digital=digital.Checked;s.TV=tv.Checked;s.Trailers=trailers.Checked;s.ConfirmedDates=confirmed.Checked;s.FastSearch=fast.Checked;
+   s.EmailEnabled=emailEnabledBox.Checked;s.EmailHighPriority=emailPriorityBox.Checked;
    if(mobile.Checked&&store.PhoneTopic.Length==0)throw new Exception("Choose Create connection before enabling phone alerts.");s.Mobile=mobile.Checked;s.Onboarded=true;
    if(!testing)Storage.SetStartup(startup.Checked,Application.ExecutablePath);keyBox.Text="";store.Save();SetStatus("Settings saved.");
   }

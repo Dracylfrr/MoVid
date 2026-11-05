@@ -9,8 +9,8 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("Personal movie and TV release reminders")]
 [assembly: AssemblyCompany("MoVid contributors")]
 [assembly: AssemblyProduct("MoVid")]
-[assembly: AssemblyVersion("0.2.1.0")]
-[assembly: AssemblyFileVersion("0.2.1.0")]
+[assembly: AssemblyVersion("0.3.0.0")]
+[assembly: AssemblyFileVersion("0.3.0.0")]
 namespace MoVid {
  static class Program {
   public const string ApplicationUrl="https://github.com/Dracylfrr/MoVid";

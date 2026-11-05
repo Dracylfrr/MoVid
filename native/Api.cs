@@ -11,9 +11,11 @@ namespace MoVid {
   public Func<string,Task<Dictionary<string,object>>> Fixture;
   private static readonly HttpClient Client=new HttpClient{Timeout=TimeSpan.FromSeconds(20)};
   private readonly Storage store;
-  public Catalog(Storage storage){store=storage;}
+  public readonly EmailClient Email;
+  public Catalog(Storage storage){store=storage;Email=new EmailClient(store);}
   public async Task<Dictionary<string,object>> Get(string path){
    if(Fixture!=null)return await Fixture(path);
+   if(Email.Configured)return await Email.Request("/catalog?path="+Uri.EscapeDataString(path));
    string key=store.ApiKey;if(key.Length==0)throw new Exception("Connect the movie database once in Settings to search for real people and releases.");
    var request=new HttpRequestMessage(HttpMethod.Get,"https://api.themoviedb.org/3"+path+(path.Contains("?")?"&":"?")+"language=en-US");
    if(Regex.IsMatch(key,"^[a-fA-F0-9]{32}$"))request.RequestUri=new Uri(request.RequestUri+"&api_key="+Uri.EscapeDataString(key));else request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",key);

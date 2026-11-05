@@ -4,18 +4,18 @@ Unicode true
 !include "LogicLib.nsh"
 !include "Sections.nsh"
 Name "MoVid"
-OutFile "..\dist\MoVid-Setup-0.2.1.exe"
+OutFile "..\dist\MoVid-Setup-0.3.0.exe"
 InstallDir "$LOCALAPPDATA\Programs\MoVid"
 InstallDirRegKey HKCU "Software\MoVid" "InstallDir"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
 Icon "icon.ico"
 UninstallIcon "icon.ico"
-VIProductVersion "0.2.1.0"
+VIProductVersion "0.3.0.0"
 VIAddVersionKey /LANG=1033 "ProductName" "MoVid"
 VIAddVersionKey /LANG=1033 "FileDescription" "MoVid personal release reminders setup"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "MoVid contributors"
-VIAddVersionKey /LANG=1033 "FileVersion" "0.2.1"
+VIAddVersionKey /LANG=1033 "FileVersion" "0.3.0"
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN "$INSTDIR\MoVid.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Open MoVid"
@@ -57,7 +57,7 @@ Section "MoVid application (required)" SEC_APP
     CreateShortcut "$SMPROGRAMS\MoVid\MoVid.lnk" "$INSTDIR\MoVid.exe"
     CreateShortcut "$SMPROGRAMS\MoVid\Uninstall MoVid.lnk" "$INSTDIR\Uninstall.exe"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MoVid" "DisplayName" "MoVid"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MoVid" "DisplayVersion" "0.2.1"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MoVid" "DisplayVersion" "0.3.0"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MoVid" "Publisher" "MoVid contributors"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MoVid" "UninstallString" '$\"$INSTDIR\Uninstall.exe$\"'
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MoVid" "DisplayIcon" "$INSTDIR\MoVid.exe"

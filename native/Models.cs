@@ -5,16 +5,18 @@ using System.Linq;
 using System.Web.Script.Serialization;
 namespace MoVid {
  public class Preferences {
-  public string Region="US",Timing="both",Sort="recent",KeyCipher="",TopicCipher="";
+  public string Region="US",Timing="before",Sort="recent",KeyCipher="",TopicCipher="";
+  public string EmailAddress="",EmailSessionCipher="",EmailUnsubscribeCipher="";
+  public bool EmailEnabled=true,EmailHighPriority=false;
   public int Hour=9;
-  public bool Notifications=true,Trailers=true,ConfirmedDates=true,Theater=true,Digital=true,TV=true,Mobile=false,Onboarded=false,FastSearch=false;
+  public bool Notifications=true,Trailers=false,ConfirmedDates=false,Theater=true,Digital=true,TV=true,Mobile=false,Onboarded=false,FastSearch=false;
  }
  public class Person { public int Id; public string Name,Photo,Department,Since; public long Added; public override string ToString(){return Name??"";} }
  public class Release {
   public string Id,Media,Title,Date,Kind,Region,Poster,Note; public int TitleId; public bool Stale;
   public List<int> People=new List<int>();
  }
- public class Notice { public string Key,Title,Message,Url,PhoneStatus,Time; }
+ public class Notice { public string Key,Title,Message,Url,PhoneStatus,EmailStatus,Time; }
  public class AppState {
   public Preferences Settings=new Preferences(); public List<Person> Follows=new List<Person>();
   public List<Release> Releases=new List<Release>();public List<string> Saved=new List<string>(),Dismissed=new List<string>();
@@ -23,6 +25,7 @@ namespace MoVid {
  }
  public class Reminder { public Release Release; public string Key,When; }
  public static class Rules {
+  public static bool DeliveryEnabled(Preferences s){return s.Notifications||(s.EmailEnabled&&!String.IsNullOrEmpty(s.EmailSessionCipher));}
   public static string Day(DateTime date){return date.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture);}
   public static bool ValidDay(string value){DateTime d;return DateTime.TryParseExact(value,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out d);}
   public static bool Enabled(Release r,Preferences s){return r.Kind=="theater"?s.Theater:r.Kind=="digital"?s.Digital:r.Kind=="tv"?s.TV:false;}
@@ -30,7 +33,7 @@ namespace MoVid {
   public static IEnumerable<Person> Eligible(Release r,IEnumerable<Person> people){return people.Where(p=>r.People.Contains(p.Id)&&ValidDay(r.Date)&&String.CompareOrdinal(r.Date,p.Since)>0);}
   public static string Message(Release r,IEnumerable<Person> people,string when){string names=String.Join(" and ",Eligible(r,people).Take(2).Select(p=>p.Name));return(names.Length>0?names+"’s ":"")+r.Title+" is releasing "+when+".";}
   public static List<Reminder> Due(AppState s,DateTime now){
-   var result=new List<Reminder>();if(!s.Settings.Notifications||s.Settings.Timing=="none"||now.Hour<s.Settings.Hour)return result;
+   var result=new List<Reminder>();if(!DeliveryEnabled(s.Settings)||s.Settings.Timing=="none"||now.Hour<s.Settings.Hour)return result;
    foreach(var r in s.Releases){
     if(r.Stale||s.Dismissed.Contains(r.Id)||!Enabled(r,s.Settings)||!Eligible(r,s.Follows).Any())continue;
     string when=r.Date==Day(now)?"TODAY":r.Date==Day(now.AddDays(1))?"TOMORROW":null;

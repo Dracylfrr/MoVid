@@ -6,7 +6,7 @@ if (!$installTarget.StartsWith([System.IO.Path]::GetFullPath((Join-Path $project
 New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
 $startupKey = 'HKCU:/Software/Microsoft/Windows/CurrentVersion/Run'
 $startupBefore = (Get-ItemProperty -Path $startupKey -Name MoVid -ErrorAction SilentlyContinue).MoVid
-$installer = Join-Path $projectRoot 'dist/MoVid-Setup-0.2.1.exe'
+$installer = Join-Path $projectRoot 'dist/MoVid-Setup-0.3.0.exe'
 $proc = Start-Process -FilePath $installer -ArgumentList @('/S','/TESTMODE',('/D=' + $installTarget)) -WindowStyle Hidden -PassThru -Wait
 if ($proc.ExitCode -ne 0) { throw "Installer failed: $($proc.ExitCode)" }
 foreach ($name in @('MoVid.exe','Uninstall.exe','LICENSE.txt','README.txt','test-install.txt')) { if (!(Test-Path -LiteralPath (Join-Path $installTarget $name))) { throw "Missing installed file: $name" } }

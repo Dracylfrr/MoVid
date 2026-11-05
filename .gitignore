@@ -8,3 +8,7 @@ app/catalog-config.json
 tools/
 bin/
 *.tmp
+server/.dev.vars
+server/.wrangler/
+server/wrangler.local.json
+bin/service-config.json

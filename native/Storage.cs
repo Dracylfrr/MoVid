@@ -16,13 +16,13 @@ namespace MoVid {
   public string NewTopic(){var b=new byte[24];using(var r=RandomNumberGenerator.Create())r.GetBytes(b);PhoneTopic="movid-"+BitConverter.ToString(b).Replace("-","").ToLowerInvariant();Save();return PhoneTopic;}
   public static void SetStartup(bool enabled,string exe){using(var k=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run")){if(enabled)k.SetValue("MoVid","\""+exe+"\" --background",RegistryValueKind.String);else k.DeleteValue("MoVid",false);}}
   public static bool StartupEnabled(string exe){using(var k=Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run"))return k!=null&&Convert.ToString(k.GetValue("MoVid","")).IndexOf("\""+exe+"\"",StringComparison.OrdinalIgnoreCase)>=0;}
-  public string Export(){var s=J.Serializer().Deserialize<AppState>(J.Serializer().Serialize(State));s.Settings.KeyCipher="";s.Settings.TopicCipher="";s.Settings.Mobile=false;s.Sent.Clear();s.TrailerSeen.Clear();s.Inbox.Clear();return J.Serializer().Serialize(s);}
+  public string Export(){var s=J.Serializer().Deserialize<AppState>(J.Serializer().Serialize(State));s.Settings.KeyCipher="";s.Settings.TopicCipher="";s.Settings.Mobile=false;s.Settings.EmailSessionCipher="";s.Settings.EmailUnsubscribeCipher="";s.Settings.EmailAddress="";s.Settings.EmailEnabled=false;s.Sent.Clear();s.TrailerSeen.Clear();s.Inbox.Clear();return J.Serializer().Serialize(s);}
   public void Import(string json){
    if(json.Length>2*1024*1024)throw new Exception("Backup must be smaller than 2 MB.");var s=J.Serializer().Deserialize<AppState>(json);
    if(s==null||s.Settings==null||s.Follows==null||s.Follows.Count>500||s.Saved==null||s.Dismissed==null)throw new Exception("Invalid MoVid backup.");
    var ids=new System.Collections.Generic.HashSet<int>();foreach(var p in s.Follows)if(p.Id<=0||!ids.Add(p.Id)||String.IsNullOrWhiteSpace(p.Name)||p.Name.Length>200||!Rules.ValidDay(p.Since))throw new Exception("Invalid person in backup.");
    if(s.Settings.Region==null||!System.Text.RegularExpressions.Regex.IsMatch(s.Settings.Region,"^[A-Z]{2}$")||s.Settings.Hour<0||s.Settings.Hour>23||Array.IndexOf(new[]{"both","before","day","none"},s.Settings.Timing)<0)throw new Exception("Invalid preferences in backup.");
-   s.Settings.KeyCipher=State.Settings.KeyCipher;s.Settings.TopicCipher=State.Settings.TopicCipher;s.Settings.Mobile=false;s.Settings.Onboarded=true;
+   s.Settings.KeyCipher=State.Settings.KeyCipher;s.Settings.TopicCipher=State.Settings.TopicCipher;s.Settings.Mobile=false;s.Settings.EmailSessionCipher=State.Settings.EmailSessionCipher;s.Settings.EmailUnsubscribeCipher=State.Settings.EmailUnsubscribeCipher;s.Settings.EmailAddress=State.Settings.EmailAddress;s.Settings.EmailEnabled=false;s.Settings.Onboarded=true;
    s.Releases=new System.Collections.Generic.List<Release>();s.Inbox=new System.Collections.Generic.List<Notice>();s.Sent=new System.Collections.Generic.Dictionary<string,string>();s.TrailerSeen=new System.Collections.Generic.Dictionary<string,System.Collections.Generic.List<string>>();s.LastCheck="";s.LastError="";State=s;Save();
   }
  }

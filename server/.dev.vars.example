@@ -1,0 +1,5 @@
+# Owner only. Keep the real .dev.vars out of Git.
+TMDB_TOKEN=your_tmdb_read_token_or_v3_key
+BREVO_KEY=your_brevo_free_account_api_key
+MAIL_FROM=your_verified_sender@example.com
+PUBLIC_URL=https://movid-email.YOUR-SUBDOMAIN.workers.dev

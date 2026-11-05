@@ -2,11 +2,13 @@
 
 Project website and TMDB application URL: **https://github.com/Dracylfrr/MoVid**
 
-A lightweight, native Windows desktop app for personal movie and TV release reminders. Each person installs their own copy and keeps their own follows. No MoVid server, account, paid plan, browser extension, Electron runtime, or AI is required.
+A lightweight, native Windows desktop app for personal movie and TV release reminders. Each person keeps their own follows. No paid plan, browser extension, Electron runtime, or AI is required. The simple email experience uses an owner-operated free-tier service; advanced desktop-only personal use can still run without that service.
+
+**Email activation is not live yet.** The email pathway is implemented and tested with simulated delivery. The app owner must complete [the one-time free setup](server/OWNER-SETUP.md) and build against that service URL before real verification or release emails can be sent. The unconfigured installer displays that limitation instead of claiming delivery.
 
 ## Install
 
-Run **MoVid-Setup-0.2.1.exe**. It installs for your Windows user without requiring administrator access. **Start MoVid when I sign in to Windows** is selected by default; you can turn it off in setup, Settings, or the tray menu. Startup launches quietly into the system tray.
+Run **MoVid-Setup-0.3.0.exe**. It installs for your Windows user without requiring administrator access. **Start MoVid when I sign in to Windows** is selected by default; you can turn it off in setup, Settings, or the tray menu. Startup launches quietly into the system tray.
 
 Open MoVid from Start or the tray. Closing the window keeps checks running. Right-click the tray icon and select **Quit MoVid** to stop completely. Uninstalling removes the startup registration and stops the app. Personal follows and backups remain in `%LOCALAPPDATA%\MoVid\Data` so reinstalling can restore them; delete that folder manually if you want to erase them.
 
@@ -14,12 +16,20 @@ The app targets Windows 10/11 with .NET Framework 4.8, normally included with cu
 
 ## First use
 
-1. Open Settings and connect your free TMDB developer API key or API Read Access Token once. Get one at <https://www.themoviedb.org/settings/api>. For the required **Application URL**, use `https://github.com/Dracylfrr/MoVid`; Settings also has a **Copy application URL** button. Select Desktop Application and describe it as a personal, noncommercial release-reminder app. The URL identifies the project; it is not an API key or authentication callback. A real credential is not bundled with this build and live searches cannot work until one is supplied. This self-run design avoids a shared backend or hidden shared secret.
+1. In an email-activated build, enter your email and the six-digit code sent to it. Users do not register for TMDB or configure a sender. The app owner configures those once using [the activation guide](server/OWNER-SETUP.md). Without activation, desktop-only users can open **Advanced personal setup** and connect their own TMDB key; existing personal connections are preserved.
 2. Search an actor or filmmaker by name. Press Enter or Search, choose the matching person/photo, and select Follow.
 3. MoVid checks upcoming work immediately and sends a first-follow test alert. It clearly says if the database has no future date or project yet.
-4. Choose trailers, date confirmations, day-before reminders, release-day reminders, or both. Movie dates use your selected country; reminder hours use this computer's local time.
+4. New profiles default to **one day before release at 9 AM local time**. Release-day reminders, both days, trailers, and date confirmations are optional in Settings. Existing profiles keep their saved choices. Movie dates use your selected country.
 
 Following supports **Recently added** (newest first) and **A–Z**. Settings offers **Fast suggestions**, an offline dropdown using names cached from previous searches and follows. No full actor database is downloaded. Enter/Search still finds people online if they are not cached.
+
+## Email and Gmail priority
+
+Settings includes email verification, disconnect, a test-email button, and **Request high-priority emails**. Release-email subjects use the message itself with a `[MoVid]` prefix, such as `[MoVid] Ariana Grande’s [Title] is releasing TOMORROW.` Email-only reminders work even when desktop popups are disabled.
+
+The priority option adds standard sender headers where supported. **It does not set Gmail's Important label and cannot guarantee an iPhone notification.** The app's **Gmail high-priority setup** guide explains creating a Gmail filter from a real received test message and choosing **Always mark it as important**. Test again with your phone's existing High priority only setting. MoVid does not read or change your Gmail inbox.
+
+The service limits mail to the address verified by that device, deduplicates alerts, provides unsubscribe links, and caps total sending at 200 emails/day across the service. It does not buy credits or upgrade a plan. Sender approval, free hosting quotas, provider availability, and spam filtering still apply. Release checks still run on the user's computer; no remote future emails are scheduled after the app quits or uninstalls.
 
 ## Free phone lock-screen alerts (optional)
 
@@ -45,13 +55,13 @@ Data and images come from TMDB, not IMDb scraping. Historical work is used to id
 - Trailer alerts use official YouTube trailers indexed by TMDB. Initial checks establish a baseline without a backlog. Later newly detected trailers may alert after the original trailer publication. Coverage and language availability depend on the database.
 - Date-confirmation alerts apply to previously tracked undated titles. Saved/dismissed choices carry over when dates become known.
 - Data refreshes approximately daily while the app runs, with reminder checks every five minutes and a manual Check releases button. Missed past-day alerts are not replayed. Title lookup failures preserve last known dates, mark them stale, and pause reminders for those titles.
-- Studio follows, email, default phone Messages, accounts and cross-device profile sync are not included.
+- Studio follows, default phone Messages, and cross-device profile sync are not included. Email verification is supported after owner activation; it is not a Gmail account login.
 
 ## Privacy and cost
 
 Follows and preferences stay in the Windows user profile. TMDB receives searches and requested people/title IDs; photos load from its image server. Optional ntfy delivery receives only notification content and the connection topic. No analytics are included.
 
-The database credential and phone topic use Windows DPAPI encryption for the current user. JSON backup exports omit both secrets. Imports preserve the local database connection and disable phone delivery until explicitly enabled again.
+The database credential, phone topic, and email session/unsubscribe tokens use Windows DPAPI encryption for the current user. JSON backup exports omit those secrets and the email address. Imports preserve local connections but disable external email/phone delivery until explicitly enabled again. Email activation sends the verified address and notification text to the configured owner service and email provider; TMDB receives catalog queries through that service. See [owner setup and privacy notes](server/OWNER-SETUP.md).
 
 MoVid has no recurring hosting or delivery fees. Free API terms and limits still apply. TMDB's free developer access is for noncommercial use with attribution: <https://developer.themoviedb.org/docs/faq>. This product uses the TMDB API but is not endorsed or certified by TMDB. The TMDB logo and other data/images remain third-party materials outside the source code's MIT license.
 
@@ -66,11 +76,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/get-installer-tool.p
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-installer.ps1
+node --test server/worker.test.mjs
 ```
 
 The installer goes to `dist`; the standalone executable goes to `bin`. The standalone app can run directly; its startup preference registers its current path, so keep it in a permanent location. The installer is the recommended way to keep that location stable.
 
 Tests exercise encrypted storage, reminders, regional dates, duplicate suppression, first follows, trailer/date updates, backups, native UI, cached suggestions, and tray behavior with synthetic data. They use isolated test profiles and do not send real phone alerts or require a real API key. A real-key catalog check and real-phone confirmation remain user setup steps. Tests can render the UI and record memory usage, but don't prove lock-screen delivery on a physical phone.
+
+The email server tests use Node.js 24's in-memory SQLite API to exercise verification, throttling, proxy restrictions, recipient isolation, priority headers, duplicate suppression, unsubscribe, and free sending caps. No real emails or account registrations occur in tests.
 
 ## Future macOS release
 
