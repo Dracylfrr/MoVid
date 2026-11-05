@@ -1,0 +1,10 @@
+node_modules/
+dist/
+test-output/
+.test-profiles/
+.env
+app/catalog-config.json
+*.log
+tools/
+bin/
+*.tmp

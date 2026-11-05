@@ -1,0 +1,1 @@
+{"name":"movid-desktop","version":"0.2.1","private":true,"license":"MIT","description":"Native Windows personal release reminders","scripts":{"build":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1","test":"powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test.ps1"}}
